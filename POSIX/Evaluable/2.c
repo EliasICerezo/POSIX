@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <time.h>
 
 //Funciones derivadas del tutorial que estoy siguiendo
 void check(int x){
@@ -107,13 +108,24 @@ void *tareaB(void *ptr){
     data=(struct Data*) ptr;
     int i;
     pthread_mutex_t *sem= data->mutex;
-    for(i=0; i<40; i++){
-        pthread_mutex_lock(sem);
-        data->n=data->n+1;
-        pthread_mutex_unlock(sem);
-        printf("Ejecutando tarea B, valor de la variable: %d\n", data->n);
-        esperaActiva();
-    }
+    //declaramos una estructura de tiempo para poder dormir al thread
+    struct timespec t;
+
+    while(1){ 
+        for(i=0; i<40; i++){
+            pthread_mutex_lock(sem);
+            data->n=data->n+1;
+            pthread_mutex_unlock(sem);
+            printf("Ejecutando tarea B, valor de la variable: %d\n", data->n);
+            esperaActiva();
+        }
+        //obtenemos el tiempo
+        clock_gettime(CLOCK_MONOTONIC, &t);
+        //le añadimos a la estructura lo necesario para completar el periodo
+        t.tv_sec=t.tv_sec+60;
+        t.tv_nsec=t.tv_nsec+300;
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+    }   
 }
 
 //Funciones que realizan los incrementos
@@ -122,11 +134,21 @@ void *tareaA(void *ptr){
     data=(struct Data*) ptr;
     int i;
     pthread_mutex_t *sem= data->mutex;
-    for(i=0; i<40; i++){
-        pthread_mutex_lock(sem);
-        data->n=data->n+100;
-        printf("Ejecutando tarea A, valor de la variable: %d\n", data->n);
-        pthread_mutex_unlock(sem);
-        esperaActiva();
-    }
+    
+    struct timespec t;
+    while(1){
+        for(i=0; i<40; i++){
+            pthread_mutex_lock(sem);
+            data->n=data->n+100;
+            printf("Ejecutando tarea A, valor de la variable: %d\n", data->n);
+            pthread_mutex_unlock(sem);
+            esperaActiva();
+            
+        }
+        //obtenemos el tiempo
+        clock_gettime(CLOCK_MONOTONIC, &t);
+        //le añadimos a la estructura lo necesario para completar el periodo
+        t.tv_sec=t.tv_sec+50;
+        t.tv_nsec=t.tv_nsec+200;
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);}
 }
