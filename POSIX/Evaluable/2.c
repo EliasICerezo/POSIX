@@ -150,5 +150,6 @@ void *tareaA(void *ptr){
         //le añadimos a la estructura lo necesario para completar el periodo
         t.tv_sec=t.tv_sec+50;
         t.tv_nsec=t.tv_nsec+200;
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);}
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+        }
 }
