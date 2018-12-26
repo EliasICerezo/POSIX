@@ -41,8 +41,7 @@ int main(int argc, char const *argv[])
     }else{
     int p1=atoi(argv[1]), p2=atoi(argv[2]);
 
-    //Bloqueamos la memoria que vayamos a usar ahora y en el futuro.
-    check(mlockall(MCL_CURRENT | MCL_FUTURE));
+  
     //Aqui creamos las hebras
     //creamos el struct de datos compartidos y lo inicializamos
     struct Data data;
