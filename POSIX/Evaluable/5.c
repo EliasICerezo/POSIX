@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
 
     pthread_t entrada, espera, nivelbat, consumobat;
     struct Data data;
-    data.bateria=100;
+    data.bateria=10;
     data.thread_consumoBateria=consumobat;
     data.thread_entradaExterior=entrada;
     data.thread_esperaAcciones=espera;
@@ -83,7 +83,7 @@ int main(int argc, char const *argv[])
     check(pthread_attr_setschedparam(&attr,&param));
     check(pthread_create(&t[3], &attr, &nivelBateria,&data));
     */
-    //check(pthread_join(t[0],NULL));
+    check(pthread_join(consumobat,NULL));
     check(pthread_join(entrada,NULL));
     check(pthread_join(espera,NULL));
     //check(pthread_join(t[3],NULL));
@@ -131,7 +131,8 @@ void *entradaExterior(void *ptr){
                
             }
         }else if(signum==FIN){
-            break;
+            printf("\n\nSOY EL THREAD DEL EXTERIOR Y HE TERMINADO\n\n");
+            pthread_exit(0);
         }
     }
     
@@ -158,8 +159,8 @@ void *esperaAcciones(void *ptr){
         }else if(sig==SMS){
             printf("EL TELEFONO HA RECIBIDO UN MENSAJE\n");
         }else if(sig==FIN){
-            printf("EL TELEFONO HA RECIBIDO FIN\n");
-            break;
+            printf("\n\nSOY EL THREAD DEL TELEFONO Y HE TERMINADO\n\n");
+           pthread_exit(0);
         }
 
     }
@@ -188,22 +189,27 @@ void *consumoBateria(void *ptr){
     check(timer_create(CLOCK_MONOTONIC,&sig,&timer)); 
     check(sigemptyset(&set));
     sigaddset(&set,CONSUMOBAT);
+    sigaddset(&set,FIN);
     check(timer_settime(timer,TIMER_ABSTIME, &required, &old));
     //TAREA
 
     while(1){
         sigwait(&set, &signum);
-        pthread_mutex_lock(&mutex);
-        data->bateria=data->bateria-1;
-        if(data->bateria==0){
-            kill(data->thread_entradaExterior,FIN);
-            kill(data->thread_esperaAcciones,FIN);
-            kill(data->thread_nivelBateria,FIN);
-
-            break;
+        if(signum==CONSUMOBAT){
+            pthread_mutex_lock(&mutex);
+            data->bateria=data->bateria-1;
+            printf("Bateria = %d\n",data->bateria);
+            if(data->bateria==0){
+                kill(data->thread_entradaExterior,FIN);
+                kill(data->thread_esperaAcciones,FIN);
+                kill(data->thread_nivelBateria,FIN);
+                kill(data->thread_consumoBateria,FIN);
+            }
+            pthread_mutex_unlock(&mutex);
+        }else if(signum==FIN){
+            printf("\n\nSOY EL THREAD DEL CONSUMO DE BATERIA Y HE TERMINADO\n\n");
+            pthread_exit(0);
         }
-        pthread_mutex_unlock(&mutex);
-        
     }
 }
 
@@ -236,7 +242,8 @@ void *nivelBateria(void *ptr){
         if(signum==CONSUMOBAT){
             printf("\nBATERIA RESTANTE:%d  \n",data->bateria);
         }else if(signum==FIN){
-            break;
+            printf("\n\nSOY EL THREAD DEL NIVEL DE BATERIA Y HE TERMINADO\n\n");
+            pthread_exit(0);
         }
     }
 

@@ -45,7 +45,6 @@ struct Data{
 int main(int argc, char const *argv[])
 {
 
-    pthread_t t1,t2;
     int policy = SCHED_FIFO;
     pthread_mutex_t m2,m3;
     pthread_mutex_init(&m2,NULL);
